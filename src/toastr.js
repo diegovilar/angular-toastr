@@ -11,7 +11,7 @@
     var index = 0;
     var toasts = [];
 
-    var previousToastMessage = '';
+    var previousToastHash = '';
     var openToasts = {};
 
     var containerDefer = $q.defer();
@@ -85,7 +85,7 @@
           }
           toast.scope.$destroy();
           var index = toasts.indexOf(toast);
-          delete openToasts[toast.scope.message];
+          delete openToasts[_makeToastHash(toast.scope.title, toast.scope.message)];
           toasts.splice(index, 1);
           var maxOpened = toastrConfig.maxOpened;
           if (maxOpened && toasts.length >= maxOpened) {
@@ -113,6 +113,10 @@
     }
 
     /* Internal functions */
+    function _makeToastHash(title, message) {
+      return "" + title + message;
+    }
+
     function _buildNotification(type, message, title, optionsOverride) {
       if (angular.isObject(title)) {
         optionsOverride = title;
@@ -275,15 +279,16 @@
       }
 
       function shouldExit() {
-        var isDuplicateOfLast = options.preventDuplicates && map.message === previousToastMessage;
-        var isDuplicateOpen = options.preventOpenDuplicates && openToasts[map.message];
+        var toastHash = _makeToastHash(map.title, map.message);
+        var isDuplicateOfLast = options.preventDuplicates && toastHash === previousToastHash;
+        var isDuplicateOpen = options.preventOpenDuplicates && openToasts[toastHash];
 
         if (isDuplicateOfLast || isDuplicateOpen) {
           return true;
         }
 
-        previousToastMessage = map.message;
-        openToasts[map.message] = true;
+        previousToastHash = toastHash;
+        openToasts[toastHash] = true;
 
         return false;
       }
